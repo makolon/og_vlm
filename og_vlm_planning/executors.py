@@ -1,4 +1,4 @@
-from typing import Dict, Any, List, Optional, Tuple
+from typing import Dict, Any
 import numpy as np
 
 class ExecutionResult:
@@ -9,19 +9,19 @@ class ExecutionResult:
 
 class TeleportExecutor:
     """
-    最小フォールバック：対象オブジェクトを receptacle の AABB 上にテレポート配置するなど，
-    物理挙動を省略して目標を満たしにいく簡易実行器（研究用）．
+    Minimal fallback: Teleports the target object onto the AABB of the receptacle, etc.
+    Simplified executor for research use that omits physical behavior and directly satisfies goals.
     """
     def __init__(self, env):
         self.env = env
 
     def _obj_by_name(self, name: str):
-        # 名寄せ（部分一致）
+    # Name matching (partial match)
         candidates = [o for o in self.env.scene.objects if hasattr(o, "name") and name.lower() in o.name.lower()]
         return candidates[0] if candidates else None
 
     def _aabb_center_top(self, obj):
-        # AABB -> 中心上面座標（簡易）
+    # AABB -> center top coordinates (simple)
         try:
             aabb = obj.aabb
             center = ( (aabb[0][0] + aabb[1][0]) / 2.0,
@@ -29,20 +29,20 @@ class TeleportExecutor:
                         aabb[1][2] )
             return np.array(center) + np.array([0.0, 0.0, 0.05])
         except Exception:
-            # フォールバック
+            # Fallback
             return np.array([0.0, 0.0, 1.0])
 
     def _set_pose(self, obj, pos, orn=None):
         try:
             obj.set_position(pos)  # EntityPrim API
         except Exception:
-            # 代替 API 名の可能性
+            # Possible alternative API name
             if hasattr(obj, "set_world_position"):
                 obj.set_world_position(pos)
-        # 回転は省略（必要に応じて set_orientation を追加）
+        # Orientation is omitted (add set_orientation if needed)
 
     def grasp(self, name: str):
-        # テレポート実行では grasp は no-op とし，次の place で位置決めする
+    # In teleport execution, grasp is a no-op; the next place determines the position
         return ExecutionResult(True, {"op": "GRASP", "target": name})
 
     def place_on_top(self, obj_name: str, receptacle_name: str):
@@ -55,11 +55,11 @@ class TeleportExecutor:
         return ExecutionResult(True, {"op": "PLACE_ON_TOP", "object": obj_name, "receptacle": receptacle_name})
 
     def place_inside(self, obj_name: str, receptacle_name: str):
-        # 近似：同様に receptacle 上方へ移動（厳密な「内側」充足は receptacle 形状に依存）
+    # Approximation: similarly move above the receptacle (strict "inside" satisfaction depends on receptacle shape)
         return self.place_on_top(obj_name, receptacle_name)
 
     def open(self, name: str):
-        # 近似：開閉はスキップ（必要ならジョイントを操作）
+    # Approximation: skip open/close (operate joint if necessary)
         return ExecutionResult(True, {"op": "OPEN", "target": name})
 
     def close(self, name: str):
@@ -74,8 +74,8 @@ class TeleportExecutor:
 
 class PrimitiveExecutor:
     """
-    Starter Semantic Action Primitives を利用してプランを実行．
-    未導入環境では ImportError になり得るため，利用側で try/except して Teleport にフォールバックしてください．
+    Executes plans using Starter Semantic Action Primitives.
+    In environments where not available, may raise ImportError; please use try/except and fallback to TeleportExecutor.
     """
     def __init__(self, env, robot=None):
         from omnigibson.action_primitives.starter_semantic_action_primitives import StarterSemanticActionPrimitives
@@ -84,11 +84,11 @@ class PrimitiveExecutor:
         self.sap = StarterSemanticActionPrimitives(scene=env.scene, robot=self.robot)
 
     def _nearest_by_name(self, name: str):
-        # SAP はオブジェクト参照を受け取ることが多いので，名寄せして最も近いものを返す例
+    # SAP often takes object references, so this example matches by name and returns the nearest one
         objs = [o for o in self.env.scene.objects if hasattr(o, "name") and name.lower() in o.name.lower()]
         if not objs:
             return None
-        # 距離順
+    # Sort by distance
         base_pos = self.robot.get_position()
         objs.sort(key=lambda o: np.linalg.norm(o.get_position() - base_pos))
         return objs[0]

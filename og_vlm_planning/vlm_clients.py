@@ -1,7 +1,6 @@
-import base64
 import json
 import os
-from typing import Dict, List, Optional, Tuple, Any
+from typing import List, Optional, Tuple, Any
 
 from pydantic import BaseModel, Field
 

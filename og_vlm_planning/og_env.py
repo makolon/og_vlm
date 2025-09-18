@@ -1,6 +1,4 @@
-from typing import List, Tuple, Dict, Any, Optional
-import numpy as np
-import os
+from typing import List, Optional
 
 import omnigibson as og
 from omnigibson.macros import gm
@@ -8,9 +6,9 @@ gm.ENABLE_OBJECT_STATES = True
 
 def make_env(activity: str, robot: str = "r1pro", headless: bool = True):
     """
-    OmniGibson 環境を生成し，BEHAVIOR の活動（BDDL定義）をロードする．
+    Create an OmniGibson environment and load a BEHAVIOR activity (defined by BDDL).
     """
-    # 生成ユーティリティ（Evaluator も内部で使用）
+    # Utility for creation (Evaluator also used internally)
     try:
         from omnigibson.learning.utils.config_utils import generate_basic_environment_config
         cfg = generate_basic_environment_config(
@@ -21,7 +19,7 @@ def make_env(activity: str, robot: str = "r1pro", headless: bool = True):
             use_task_defaults=True,
         )
     except Exception:
-        # 最小フォールバック（将来の API 変更に備えた例）
+        # Minimal fallback (example for future API changes)
         cfg = {
             "task": {"type": "BehaviorTask", "activity_name": activity},
             "scene": {"type": "InteractiveTraversableScene"},
@@ -47,8 +45,8 @@ def list_scene_names(env, max_items: int = 64) -> List[str]:
 
 def try_rgb_image_b64(env) -> Optional[str]:
     """
-    （任意）環境から RGB 画像を取得し，base64 文字列を返す．
-    取得できない場合は None を返す．
+    (Optional) Get an RGB image from the environment and return as a base64 string.
+    Returns None if not available.
     """
     try:
         robot = env.robots[0]
@@ -56,8 +54,8 @@ def try_rgb_image_b64(env) -> Optional[str]:
             rgb = robot.get_camera_images()["rgb"]
         else:
             return None
-
-        import cv2, base64
+        import cv2
+        import base64
         _, buf = cv2.imencode(".png", rgb[..., ::-1])
         return base64.b64encode(buf.tobytes()).decode("utf-8")
     except Exception:
@@ -66,10 +64,10 @@ def try_rgb_image_b64(env) -> Optional[str]:
 
 def bddl_success_fraction(env) -> float:
     """
-    BDDL の充足割合（部分点）を返す．
-    OmniGibson の Metric / TerminationCondition に依存し，取得できない場合は 0/1 近似．
+    Returns the fraction of satisfied BDDL predicates (partial score).
+    Depends on OmniGibson's Metric / TerminationCondition; if not available, returns 0/1 approximation.
     """
-    # 1) TaskMetric があれば利用
+    # 1) Use TaskMetric if available
     try:
         from omnigibson.learning.metrics.task_metric import TaskMetric
         metric = TaskMetric(env=env)
@@ -78,7 +76,7 @@ def bddl_success_fraction(env) -> float:
     except Exception:
         pass
 
-    # 2) TerminationCondition（predicate_goal）が expose していればそこから取得
+    # 2) If TerminationCondition (predicate_goal) is exposed, get from there
     try:
         terminations = getattr(env.task, "termination_conditions", [])
         for tc in terminations:

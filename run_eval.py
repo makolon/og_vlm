@@ -1,6 +1,5 @@
 import argparse
 import json
-import time
 from typing import Dict, Any
 
 from tqdm import trange
