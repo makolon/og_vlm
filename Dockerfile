@@ -1,14 +1,18 @@
 # Use NVIDIA CUDA base image for GPU support
-FROM nvidia/cuda:12.2.0-devel-ubuntu22.04
+FROM nvidia/cuda:12.8.0-devel-ubuntu22.04
 
 # Set environment variables for non-interactive installs
 ENV DEBIAN_FRONTEND=noninteractive \
     LANG=C.UTF-8 \
     LC_ALL=C.UTF-8
 
+# Ensure CUDA arch flags are present for extensions built during image build
+ENV TORCH_CUDA_ARCH_LIST="8.0;8.6;8.9"
+ENV FORCE_CUDA=1
+
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    python3 python3-pip python3-dev \
+    python3 python3-pip python3-dev python-is-python3 \
     ca-certificates git wget curl unzip \
     libgl1-mesa-glx libglib2.0-0 libsm6 libxext6 libxrender1 \
     libx11-6 libxrandr2 libxi6 libxtst6 libnss3 libxkbcommon0 \
@@ -33,17 +37,17 @@ RUN python3 -m pip install --upgrade pip && \
 # Enable by building with: --build-arg INSTALL_OG=true
 ARG INSTALL_OG=false
 ARG OG_BRANCH=v3.7.1
-ARG OG_CUDA_VERSION=12.2
+ARG OG_CUDA_VERSION=12.8
 RUN if [ "$INSTALL_OG" = "true" ]; then \
-      echo "Installing OmniGibson from BEHAVIOR-1K (branch: $OG_BRANCH)" && \
-      git clone -b "$OG_BRANCH" --depth 1 https://github.com/StanfordVL/BEHAVIOR-1K.git /opt/BEHAVIOR-1K && \
-      cd /opt/BEHAVIOR-1K && chmod +x setup.sh && \
-      ./setup.sh --omnigibson --bddl --primitives --eval \
-                 --confirm-no-conda --cuda-version "$OG_CUDA_VERSION" \
-                 --accept-nvidia-eula --accept-dataset-tos || \
-      (echo "OmniGibson setup script failed. Check logs and ensure network/EULA." && exit 1); \
+    echo "Installing OmniGibson from BEHAVIOR-1K (branch: $OG_BRANCH)" && \
+    git clone -b "$OG_BRANCH" --depth 1 https://github.com/StanfordVL/BEHAVIOR-1K.git /opt/BEHAVIOR-1K && \
+    cd /opt/BEHAVIOR-1K && chmod +x setup.sh && \
+    ./setup.sh --omnigibson --bddl --primitives \
+        --confirm-no-conda --cuda-version "$OG_CUDA_VERSION" \
+        --accept-nvidia-eula --accept-dataset-tos || \
+        (echo "OmniGibson setup script failed. Check logs and ensure network/EULA." && exit 1); \
     else \
-      echo "Skipping OmniGibson install (INSTALL_OG=false)."; \
+        echo "Skipping OmniGibson install (INSTALL_OG=false)."; \
     fi
 
 # Default command (can be overridden)

@@ -5,9 +5,9 @@ services:
       context: .
       args:
         # Set to 'true' to install OmniGibson via BEHAVIOR-1K during build
-        INSTALL_OG: ${INSTALL_OG-false}
+        INSTALL_OG: ${INSTALL_OG-true}
         OG_BRANCH: ${OG_BRANCH-v3.7.1}
-        OG_CUDA_VERSION: ${OG_CUDA_VERSION-12.2}
+        OG_CUDA_VERSION: ${OG_CUDA_VERSION-12.8}
     image: og_vlm:latest
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
@@ -19,9 +19,10 @@ services:
       - MUJOCO_GL=egl
     volumes:
       - .:/workspace
-      # Mount X11 socket if you plan to display windows
-      # - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
     working_dir: /workspace
-    gpus: all
+    gpus:
+      - count: all
+        capabilities: [gpu]
     stdin_open: true
     tty: true
