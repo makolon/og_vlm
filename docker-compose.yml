@@ -12,15 +12,23 @@ services:
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - ACCEPT_EULA=Y
+      - PRIVACY_CONSENT=Y
       - NVIDIA_VISIBLE_DEVICES=all
       - NVIDIA_DRIVER_CAPABILITIES=compute,utility,graphics
+      # Disable XR + services to avoid GPU XR init and FastAPI/Pydantic conflicts in headless runs
+      - OV_DISABLE_EXTENSIONS=omni.kit.xr.core,omni.kit.xr.ui.window.viewport,omni.services.core,omni.services.transport.server.base
       # Headless rendering hints (adapt as needed)
       - EGL_PLATFORM=surfaceless
       - MUJOCO_GL=egl
+      # Prefer NVIDIA Vulkan ICD (adjust path if host driver differs)
+      - VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/nvidia_icd.json
+      - __GLX_VENDOR_LIBRARY_NAME=nvidia
     volumes:
       - .:/workspace
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
     working_dir: /workspace
+    entrypoint: ["/bin/bash"]
     gpus:
       - count: all
         capabilities: [gpu]

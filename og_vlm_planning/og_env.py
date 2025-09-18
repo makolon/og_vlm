@@ -26,7 +26,11 @@ def make_env(activity: str, robot: str = "r1pro", headless: bool = True):
             "robots": [{"type": robot}],
         }
 
-    env = og.Environment(configs=cfg, headless=headless)
+    # Some OG versions don't support the `headless` kwarg; fall back if needed
+    try:
+        env = og.Environment(configs=cfg, headless=headless)
+    except TypeError:
+        env = og.Environment(configs=cfg)
     env.reset()
     return env
 

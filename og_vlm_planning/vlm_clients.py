@@ -80,10 +80,14 @@ class GeminiPlanner:
         export GEMINI_API_KEY=...
     """
     def __init__(self, model: str = "gemini-2.5-pro", temperature: float = 0.1):
-        import genai
-        from genai import Client, types
+        try:
+            from genai import Client, types
+        except Exception as e:
+            raise ImportError(
+                "google-genai is not installed. Install it in an environment that supports pydantic>=2, "
+                "or run with --provider openai."
+            ) from e
 
-        # google-genai uses GEMINI_API_KEY (Developer API) by default
         self.client = Client(api_key=os.environ.get("GEMINI_API_KEY"))
         self.model = model
         self.temperature = temperature

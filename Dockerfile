@@ -1,25 +1,18 @@
-# Use NVIDIA CUDA base image for GPU support
-FROM nvidia/cuda:12.8.0-devel-ubuntu22.04
+# Isaac Sim 4.5.0 base image from NVIDIA NGC
+FROM nvcr.io/nvidia/isaac-sim:4.5.0
 
 # Set environment variables for non-interactive installs
 ENV DEBIAN_FRONTEND=noninteractive \
     LANG=C.UTF-8 \
     LC_ALL=C.UTF-8
 
-# Ensure CUDA arch flags are present for extensions built during image build
-ENV TORCH_CUDA_ARCH_LIST="8.0;8.6;8.9"
-ENV FORCE_CUDA=1
+# Optional CUDA build flags for any torch/cpp extensions built at image time
+ENV TORCH_CUDA_ARCH_LIST="8.0;8.6;8.9" \
+    FORCE_CUDA=1
 
-# Install system dependencies
+# Install minimal extra tools (Isaac Sim image already has graphics libs)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    python3 python3-pip python3-dev python-is-python3 \
-    ca-certificates git wget curl unzip \
-    libgl1-mesa-glx libglib2.0-0 libsm6 libxext6 libxrender1 \
-    libx11-6 libxrandr2 libxi6 libxtst6 libnss3 libxkbcommon0 \
-    libdrm2 libasound2 libxfixes3 libxxf86vm1 \
-    mesa-utils \
-    xvfb x11-utils \
-    ffmpeg \
+    ca-certificates git wget curl unzip ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
 # Set up working directory
@@ -28,24 +21,23 @@ WORKDIR /workspace
 # Copy project files
 COPY . /workspace
 
-# Install Python dependencies
-RUN python3 -m pip install --upgrade pip && \
-    python3 -m pip install -r requirements.txt
+# Install Python dependencies into Isaac Sim's Python environment
+RUN /isaac-sim/python.sh -m pip install --upgrade pip && \
+    /isaac-sim/python.sh -m pip install -r requirements.txt
 
-# Optional: Install OmniGibson from BEHAVIOR-1K (route B)
-# This is heavy and may require NVIDIA EULA acceptance and large downloads.
+# Optional: Install OmniGibson + BDDL into the Isaac Sim Python env
 # Enable by building with: --build-arg INSTALL_OG=true
 ARG INSTALL_OG=false
 ARG OG_BRANCH=v3.7.1
-ARG OG_CUDA_VERSION=12.8
 RUN if [ "$INSTALL_OG" = "true" ]; then \
-    echo "Installing OmniGibson from BEHAVIOR-1K (branch: $OG_BRANCH)" && \
-    git clone -b "$OG_BRANCH" --depth 1 https://github.com/StanfordVL/BEHAVIOR-1K.git /opt/BEHAVIOR-1K && \
-    cd /opt/BEHAVIOR-1K && chmod +x setup.sh && \
-    ./setup.sh --omnigibson --bddl --primitives \
-        --confirm-no-conda --cuda-version "$OG_CUDA_VERSION" \
-        --accept-nvidia-eula --accept-dataset-tos || \
-        (echo "OmniGibson setup script failed. Check logs and ensure network/EULA." && exit 1); \
+        echo "Installing OmniGibson (attempt PyPI, else source from BEHAVIOR-1K $OG_BRANCH)" && \
+        set -ex; \
+        /isaac-sim/python.sh -m pip install --upgrade pip; \
+        (/isaac-sim/python.sh -m pip install bddl omnigibson && echo "Installed omnigibson from PyPI") || \
+        (echo "Falling back to source install from BEHAVIOR-1K" && \
+            git clone -b "$OG_BRANCH" --depth 1 https://github.com/StanfordVL/BEHAVIOR-1K.git /opt/BEHAVIOR-1K && \
+            /isaac-sim/python.sh -m pip install -e /opt/BEHAVIOR-1K/bddl || true && \
+            /isaac-sim/python.sh -m pip install -e /opt/BEHAVIOR-1K/omnigibson); \
     else \
         echo "Skipping OmniGibson install (INSTALL_OG=false)."; \
     fi
