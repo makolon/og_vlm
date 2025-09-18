@@ -1,0 +1,27 @@
+version: '3.8'
+services:
+  og_vlm:
+    build:
+      context: .
+      args:
+        # Set to 'true' to install OmniGibson via BEHAVIOR-1K during build
+        INSTALL_OG: ${INSTALL_OG-false}
+        OG_BRANCH: ${OG_BRANCH-v3.7.1}
+        OG_CUDA_VERSION: ${OG_CUDA_VERSION-12.2}
+    image: og_vlm:latest
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility,graphics
+      # Headless rendering hints (adapt as needed)
+      - EGL_PLATFORM=surfaceless
+      - MUJOCO_GL=egl
+    volumes:
+      - .:/workspace
+      # Mount X11 socket if you plan to display windows
+      # - /tmp/.X11-unix:/tmp/.X11-unix:rw
+    working_dir: /workspace
+    gpus: all
+    stdin_open: true
+    tty: true

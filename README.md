@@ -58,7 +58,7 @@ python run_eval.py   --provider gemini --model gemini-2.5-pro   --activity "pick
 - `--robot`: `r1pro` or `tiago` recommended (SAP supported)
 - `--exec`: `primitives` (recommended) / `teleport` (fallback)
 
-> ⚠️ **primitives** execution requires an environment where Starter Semantic Action Primitives work (R1/Tiago & compatible controllers).
+> **primitives** execution requires an environment where Starter Semantic Action Primitives work (R1/Tiago & compatible controllers).
 > If not available, specify `--exec teleport` (minimal prototype that directly manipulates state to satisfy goals).
 
 ---
