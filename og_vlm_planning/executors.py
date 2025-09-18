@@ -16,12 +16,12 @@ class TeleportExecutor:
         self.env = env
 
     def _obj_by_name(self, name: str):
-    # Name matching (partial match)
+        # Name matching (partial match)
         candidates = [o for o in self.env.scene.objects if hasattr(o, "name") and name.lower() in o.name.lower()]
         return candidates[0] if candidates else None
 
     def _aabb_center_top(self, obj):
-    # AABB -> center top coordinates (simple)
+        # AABB -> center top coordinates (simple)
         try:
             aabb = obj.aabb
             center = ( (aabb[0][0] + aabb[1][0]) / 2.0,
@@ -39,10 +39,10 @@ class TeleportExecutor:
             # Possible alternative API name
             if hasattr(obj, "set_world_position"):
                 obj.set_world_position(pos)
-        # Orientation is omitted (add set_orientation if needed)
+                # Orientation is omitted (add set_orientation if needed)
 
     def grasp(self, name: str):
-    # In teleport execution, grasp is a no-op; the next place determines the position
+        # In teleport execution, grasp is a no-op; the next place determines the position
         return ExecutionResult(True, {"op": "GRASP", "target": name})
 
     def place_on_top(self, obj_name: str, receptacle_name: str):
@@ -55,11 +55,11 @@ class TeleportExecutor:
         return ExecutionResult(True, {"op": "PLACE_ON_TOP", "object": obj_name, "receptacle": receptacle_name})
 
     def place_inside(self, obj_name: str, receptacle_name: str):
-    # Approximation: similarly move above the receptacle (strict "inside" satisfaction depends on receptacle shape)
+        # Approximation: similarly move above the receptacle (strict "inside" satisfaction depends on receptacle shape)
         return self.place_on_top(obj_name, receptacle_name)
 
     def open(self, name: str):
-    # Approximation: skip open/close (operate joint if necessary)
+        # Approximation: skip open/close (operate joint if necessary)
         return ExecutionResult(True, {"op": "OPEN", "target": name})
 
     def close(self, name: str):
@@ -84,11 +84,11 @@ class PrimitiveExecutor:
         self.sap = StarterSemanticActionPrimitives(scene=env.scene, robot=self.robot)
 
     def _nearest_by_name(self, name: str):
-    # SAP often takes object references, so this example matches by name and returns the nearest one
+        # SAP often takes object references, so this example matches by name and returns the nearest one
         objs = [o for o in self.env.scene.objects if hasattr(o, "name") and name.lower() in o.name.lower()]
         if not objs:
             return None
-    # Sort by distance
+        # Sort by distance
         base_pos = self.robot.get_position()
         objs.sort(key=lambda o: np.linalg.norm(o.get_position() - base_pos))
         return objs[0]
