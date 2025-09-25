@@ -21,14 +21,14 @@ def get_compatible_scene_model(activity_name, default_scene="house_single_floor"
         "rearranging_kitchen_furniture": ["house_double_floor_lower"],
         "picking_up_toys": ["house_single_floor"],
         "setting_mousetraps": ["house_double_floor_upper"],
-    "install_air_freshener": ["house_single_floor", "Rs_int"],
+        "install_air_freshener": ["house_single_floor", "Rs_int"],
         "mopping_floors": ["house_single_floor", "house_double_floor_lower"],
-    "making_tea": ["house_single_floor", "house_double_floor_lower"],
-    "loading_the_dishwasher": ["house_single_floor", "house_double_floor_lower"],
-    "putting_food_in_fridge": ["house_single_floor", "Rs_int"],
-    "cooking": ["house_single_floor", "Rs_int"],
-    "cleaning": ["house_single_floor", "Rs_int"],
-    "organizing": ["house_single_floor", "Rs_int"],
+        "making_tea": ["house_single_floor", "house_double_floor_lower"],
+        "loading_the_dishwasher": ["house_single_floor", "house_double_floor_lower"],
+        "putting_food_in_fridge": ["house_single_floor", "Rs_int"],
+        "cooking": ["house_single_floor", "Rs_int"],
+        "cleaning": ["house_single_floor", "Rs_int"],
+        "organizing": ["house_single_floor", "Rs_int"],
     }
     
     if activity_name in activity_scene_mapping:
@@ -61,7 +61,7 @@ def get_candidate_scene_models(activity_name) -> List[str]:
     }
     if activity_name in base:
         return base[activity_name]
-    # Generic fallback ordering
+
     return ["house_single_floor", "house_double_floor_lower", "Rs_int"]
 
 
@@ -97,13 +97,6 @@ def make_env(activity: str, robot: str = "r1pro", headless: bool = True):
         env = og.Environment(configs=config)
         env.reset()
         return env
-
-
-def make_env_with_names(activity_name: str, robot_type: str = "R1Pro", scene_model: str = None):
-    """
-    Alternative function with explicit parameter names
-    """
-    return make_env(activity=activity_name, robot=robot_type.replace("R1Pro", "r1pro"))
 
 
 def list_scene_names(env, max_items: int = 64) -> List[str]:
