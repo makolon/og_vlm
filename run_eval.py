@@ -30,19 +30,21 @@ def exec_step(executor, step: Dict[str, Any]):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--provider", type=str, choices=["openai", "gemini"], required=True)
-    ap.add_argument("--model", type=str, required=True)
-    ap.add_argument("--activity", type=str, required=True, help="BEHAVIOR activity name (e.g., pick_up_trash)")
+    ap.add_argument("--provider", type=str, default="openai", choices=["openai", "gemini"])
+    ap.add_argument("--model", type=str, default="gpt-5")
+    ap.add_argument("--activity", type=str, default="putting_food_in_fridge")
     ap.add_argument("--episodes", type=int, default=5)
-    ap.add_argument("--robot", type=str, default="r1pro")
+    ap.add_argument("--robot", type=str, default="R1Pro")
     ap.add_argument("--exec", dest="executor", type=str, default="primitives", choices=["primitives", "teleport"])
     ap.add_argument("--temperature", type=float, default=0.1)
     args = ap.parse_args()
 
     # env
+    print("[info] Environment setup...")
     env = make_env(activity=args.activity, robot=args.robot)
 
     # planner
+    print("[info] Initializing planner...")
     planner = get_planner(provider=args.provider, model=args.model, temperature=args.temperature)
 
     # executor
@@ -66,11 +68,20 @@ def main():
         image_b64 = try_rgb_image_b64(env)
 
         # plan
+        print("[info] Planning with context:", {
+            "activity": args.activity,
+            "robot": args.robot,
+            "scene": env.scene.name if hasattr(env.scene, "name") else "unknown",
+            "objects": catalog,
+            "image_b64": image_b64 is not None,
+        })
         plan = planner.plan(activity=args.activity, catalog=catalog, notes="", image_b64=image_b64)
+        print("[info] Plan:", plan)
 
         # execute
         for step in plan.plan:
             res = exec_step(executor, step.dict())
+            print(f"[step] {step.op} {step} => {res}")
             if res is None:
                 print(f"[skip] unknown op: {step.op}")
                 continue

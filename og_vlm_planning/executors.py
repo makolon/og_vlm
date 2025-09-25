@@ -1,6 +1,7 @@
 from typing import Dict, Any
 import numpy as np
 
+
 class ExecutionResult:
     def __init__(self, success: bool, info: Dict[str, Any]):
         self.success = success
@@ -22,24 +23,14 @@ class TeleportExecutor:
 
     def _aabb_center_top(self, obj):
         # AABB -> center top coordinates (simple)
-        try:
-            aabb = obj.aabb
-            center = ( (aabb[0][0] + aabb[1][0]) / 2.0,
-                       (aabb[0][1] + aabb[1][1]) / 2.0,
-                        aabb[1][2] )
-            return np.array(center) + np.array([0.0, 0.0, 0.05])
-        except Exception:
-            # Fallback
-            return np.array([0.0, 0.0, 1.0])
+        aabb = obj.aabb
+        center = ( (aabb[0][0] + aabb[1][0]) / 2.0,
+                    (aabb[0][1] + aabb[1][1]) / 2.0,
+                    aabb[1][2] )
+        return np.array(center) + np.array([0.0, 0.0, 0.05])
 
     def _set_pose(self, obj, pos, orn=None):
-        try:
-            obj.set_position(pos)  # EntityPrim API
-        except Exception:
-            # Possible alternative API name
-            if hasattr(obj, "set_world_position"):
-                obj.set_world_position(pos)
-                # Orientation is omitted (add set_orientation if needed)
+        obj.set_position(pos)
 
     def grasp(self, name: str):
         # In teleport execution, grasp is a no-op; the next place determines the position

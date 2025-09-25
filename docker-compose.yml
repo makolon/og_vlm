@@ -24,9 +24,14 @@ services:
       # Prefer NVIDIA Vulkan ICD (adjust path if host driver differs)
       - VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/nvidia_icd.json
       - __GLX_VENDOR_LIBRARY_NAME=nvidia
+      - OMNIGIBSON_HEADLESS=1
+      - HEADLESS=1
+      - DISPLAY=
     volumes:
       - .:/workspace
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - $HOME/.cache/ov:/root/.cache/ov \
+      - $HOME/.local/share/ov:/root/.local/share/ov \
     working_dir: /workspace
     entrypoint: ["/bin/bash"]
     gpus:

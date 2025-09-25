@@ -1,4 +1,4 @@
-# OmniGibson × VLM (GPT‑5 / Gemini 2.5 Pro) Task Planning + BDDL Evaluation
+# OG-VLM
 
 This minimal implementation loads BEHAVIOR activities (defined by BDDL) on **OmniGibson**, generates high-level **Task Plans** using VLM (`GPT-5` or `gemini-2.5-pro`), executes them with a simple Executor (Semantic Action Primitives or teleport fallback), and aggregates success rates (ratio of satisfied predicates) using **BDDL** for research purposes.
 
